@@ -8,13 +8,17 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#define USERAGENT "HTMLGET 1.0"
+
+char *build_get_query(char *host, char *page);
 
 //Tham số dòng lệnh
-//Format: $ <MSSV> http://students.iitk.ac.in/courses
+//Format: $ <MSSV> www.vnexpress.net
 int main(int argc, char **argv)
 {
 	char *page;
 	char ip[INET_ADDRSTRLEN];
+	int DSock;
 	
 	if(argc == 1)
 	{
@@ -31,7 +35,7 @@ int main(int argc, char **argv)
 		//????
 	}
 	
-	int DSock;
+	int retcode;
 	struct addrinfo hints;
 	struct addrinfo *info;		//pointer to results
 	
@@ -42,19 +46,66 @@ int main(int argc, char **argv)
 	hints.ai_socktype = SOCK_STREAM;	//TCP for html connections
 	//hints.ai_flags = AI_PASSIVE;		//Auto fill IP
 	
-	DSock = getaddrinfo(argv[1],NULL,&hints,&info);
+	retcode = getaddrinfo(argv[1],"http",&hints,&info);
 	
-	if(DSock != 0)
+	if(retcode != 0)
 	{
-		fprintf(stderr,"Failed at getaddrinfo(): %s\n", gai_strerror(DSock));
+		fprintf(stderr,"Failed at getaddrinfo(): %s\n", gai_strerror(retcode));
 		exit(1);
 	}
-	//inet_ntop(AF_INET, &(sa.sin_addr), ip4, INET_ADDRSTRLEN);
-	//struct sockaddr_in *tmp = info->
+
+	//Convert ip stored in info->ai_addr->sin_addr to char* ip with length INET_ADDRSTRLEN
 	inet_ntop(info->ai_family, &(((struct sockaddr_in *)info->ai_addr)->sin_addr),ip,INET_ADDRSTRLEN);
-	//sprintf("Dia chi cua trang %s la %s\n",page,ip);
-	printf("Dia chi cua trang: %s la %s\n",page,ip);
+	printf("Dia chi cua trang: %s la %s\n",argv[1],ip);
+				
+	//Using sockets from here :D
+	/*
+	 * #include <sys/types.h>
+		#include <sys/socket.h>
+
+		int socket(int domain, int type, int protocol); 
+	 * 
+	 */
+	 
+	 DSock = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+	 if(DSock == -1)
+	 {
+		 //Failed!
+		 exit(1);
+	 }
+	 
+	 if(connect(DSock,info->ai_addr,info->ai_addrlen) < 0)
+	 {
+		 printf("Cannot connect to %s - %s\n",argv[1],ip);
+		 exit(1);
+	 }
+	 printf("Connected to %s - %s\n",argv[1],ip);
+	
+				
 				
 	//clear up struct addrinfo info!
 	freeaddrinfo(info);
+	return 0;
+}
+
+
+//Build HTML query request!
+char *build_get_query(char *host, char *page)
+{
+	char *query;
+	char *getpage = page;
+	char *tpl = "GET /%s HTTP/1.0\r\nHost: %s\r\nUser-Agent: %s\r\n\r\n";
+	
+	/*
+	if(getpage[0] == '/')
+	{
+		getpage = getpage + 1;
+		fprintf(stderr,"Removing leading \"/\", converting %s to %s\n", page, getpage);
+	}
+	// -5 is to consider the %s %s %s in tpl and the ending \0
+	*/
+
+	query = (char *)malloc(strlen(host)+strlen(getpage)+strlen(USERAGENT)+strlen(tpl)-5);
+	sprintf(query, tpl, getpage, host, USERAGENT);
+	return query;
 }
