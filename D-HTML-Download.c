@@ -10,6 +10,7 @@
 
 #define USERAGENT "HTMLGET 1.0"
 #define SERVICE "html"
+#define BUFFSIZE 4096	//4K
 
 char *build_get_query(char *host, char *page);
 void help();
@@ -77,17 +78,44 @@ int main(int argc, char **argv)
 						%s\
 						\n\t<<END!>>\n",html_query);
 	
-	//Send html request
-	//Loop toi khi send dc moi thoi
+	//###Send html request###
+	//Loop toi khi goi dc het goi tin qua ben server
 	//retcode = 0;
-	int count = 0;
+	int bytes_sent;
+	retcode =  0;
+	
 	do
 	{
-		retcode = send(
+		bytes_sent = send(DSock,html_query,strlen(html_query),0);
+		if(bytes_sent == -1)
+		{
+			printf("Failed to send HTML-request\n");
+			exit(EXIT_FAILURE);
+		}
+		retcode += bytes_sent;
+		
 	}while(retcode < strlen(html_query));
+	//##################################
 				
-	//Receive response from server
-	char *buffer[
+				
+	//###Receive response from server###
+	char *buffer[BUFFSIZE];
+	memset(buffer, 0, sizeof(buffer));
+	int bytes_recv;
+	
+	do
+	{
+		bytes_recv = recv(DSock,buffer,BUFFSIZE,0);
+		if(bytes_recv == -1)
+		{
+			printf("Failed to receive response!");
+			exit(EXIT_FAILURE);
+		}
+		
+		
+	}
+	while(bytes_recv > 0);
+	//##################################
 				
 				
 	//clear up struct addrinfo info!
