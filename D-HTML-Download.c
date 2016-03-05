@@ -10,9 +10,14 @@
 
 #define USERAGENT "HTMLGET 1.0"
 #define SERVICE "html"
+#define PORT 80
 #define BUFFSIZE 4096	//4K
 
 char *build_get_query(char *host, char *page);
+char *get_host(char *path);
+char *get_page(char *path, char *host);
+void test_strtok();
+
 void help();
 
 //Tham số dòng lệnh
@@ -22,11 +27,11 @@ int main(int argc, char **argv)
 	char *page, *host;
 	char ip[INET_ADDRSTRLEN];
 	int DSock;
-	
+	//test_strtok();
 	if(argc == 2)
 	{
 		//page = argv[1];
-		printf("Download: %s",argv[1]);
+		printf("Download: %s\n",argv[1]);
 	}
 	else
 	{
@@ -44,6 +49,11 @@ int main(int argc, char **argv)
 	hints.ai_family = AF_UNSPEC;		//IPv4 hay IPv6 gi cung dc
 	hints.ai_socktype = SOCK_STREAM;	//TCP for html connections
 	//hints.ai_flags = AI_PASSIVE;		//Auto fill IP
+	
+	//Get host and page from agrv[1]
+	host = get_host(argv[1]);
+	page = get_page(argv[1],host);
+	printf("Host: %s - Page: %s\n",host,page);
 	
 	//Lay thong tin tu host
 	retcode = getaddrinfo(argv[1],SERVICE,&hints,&info);
@@ -71,6 +81,8 @@ int main(int argc, char **argv)
 		 exit(EXIT_FAILURE);
 	 }
 	 printf("Connected to %s - %s\n",argv[1],ip);
+	
+
 	
 	char *html_query = build_get_query(host, page);
 	printf("Query content:\
@@ -134,8 +146,79 @@ int main(int argc, char **argv)
 void help()
 {
 	printf("Please type with this format\
-				\n\t ./MSSV [path]\
+				\n\t\t ./MSSV [path]\
 				\n\tEx: ./1312084 www.vnexpress/tin-tuc/\n");
+}
+void test_strtok()
+{
+	char str[] = "http://abc.com/duy/abc";
+	char *pt;
+	
+	pt = strtok(str,"/");
+	printf("\n%s",pt);
+	while(pt!=NULL)
+	{
+		pt = strtok(NULL,"/");
+		printf("\n%s",pt);
+	}
+}
+
+char *get_host(char *path)
+{
+	//Input se co dang: http://example.com/index.html
+	//Output: example.com
+	char *dup = (char*) malloc(strlen(path)+1);
+	strcpy(dup,path);
+	char *pt;
+	char *host;
+	
+	pt = strtok(dup,"/");
+	//printf("Path format: %s\n",dup);
+	printf("1");
+	
+	
+	//char tmp[] = "http:";
+	if (pt && !strcmp(pt,"http:"))
+	{
+		printf("1");
+		pt = strtok(NULL,"/");
+		pt = strtok(NULL,"/");
+	}
+	else
+	{
+		printf("Failed to get host name\n");
+		exit(1);
+	}
+
+	//www.example.com or example.com
+	printf("2");
+	host = (char*) malloc(strlen(pt)+1);
+	strcpy(host,pt);
+	printf("3");
+	return host;
+}
+
+char *get_page(char *path, char *host)
+{
+	char *pt;
+	char *page;
+	
+	pt = strtok(path,"/");
+	printf("4");
+	printf("Path format: %s\n",pt);
+	
+	if ( strcmp(pt,"http:") == 0 )
+	{
+		printf("5");
+		pt = strtok(NULL,"/");
+		pt = pt + strlen(host) + 1;
+		//remove host
+		// + 1 for removing character "/"
+	}
+	printf("6");
+	page = (char*) malloc(strlen(pt)+1);
+	strcpy(page,pt);
+	return page;
 }
 
 //Build HTML query request!
