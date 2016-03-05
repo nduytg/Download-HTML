@@ -9,85 +9,106 @@
 #include <netinet/in.h>
 
 #define USERAGENT "HTMLGET 1.0"
+#define SERVICE "html"
 
 char *build_get_query(char *host, char *page);
+void help();
 
 //Tham số dòng lệnh
-//Format: $ <MSSV> www.vnexpress.net
+//Format: $ <MSSV> www.vnexpress.net (2 tham so)
 int main(int argc, char **argv)
 {
-	char *page;
+	char *page, *host;
 	char ip[INET_ADDRSTRLEN];
 	int DSock;
 	
-	if(argc == 1)
+	if(argc == 2)
 	{
-		//help();
-		exit(1);
-	}
-	else if (argc > 2)
-	{
-		page = argv[1];
+		//page = argv[1];
 		printf("Download: %s",argv[1]);
 	}
 	else
 	{
-		//????
+		help();
+		exit(EXIT_FAILURE);
 	}
 	
-	int retcode;
+	int retcode;				//return code
 	struct addrinfo hints;
 	struct addrinfo *info;		//pointer to results
 	
 	//Make the struct empty!
 	memset(&hints, 0, sizeof(hints));
 	
-	hints.ai_family = AF_UNSPEC;	//IPv4 hay IPv6 gi cung dc
+	hints.ai_family = AF_UNSPEC;		//IPv4 hay IPv6 gi cung dc
 	hints.ai_socktype = SOCK_STREAM;	//TCP for html connections
 	//hints.ai_flags = AI_PASSIVE;		//Auto fill IP
 	
-	retcode = getaddrinfo(argv[1],"http",&hints,&info);
+	//Lay thong tin tu host
+	retcode = getaddrinfo(argv[1],SERVICE,&hints,&info);
 	
 	if(retcode != 0)
 	{
 		fprintf(stderr,"Failed at getaddrinfo(): %s\n", gai_strerror(retcode));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	//Convert ip stored in info->ai_addr->sin_addr to char* ip with length INET_ADDRSTRLEN
 	inet_ntop(info->ai_family, &(((struct sockaddr_in *)info->ai_addr)->sin_addr),ip,INET_ADDRSTRLEN);
-	printf("Dia chi cua trang: %s la %s\n",argv[1],ip);
-				
-	//Using sockets from here :D
-	/*
-	 * #include <sys/types.h>
-		#include <sys/socket.h>
-
-		int socket(int domain, int type, int protocol); 
-	 * 
-	 */
+	DSock = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
 	 
-	 DSock = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
 	 if(DSock == -1)
 	 {
 		 //Failed!
-		 exit(1);
+		 printf("Cannot create socket!\n");
+		 exit(EXIT_FAILURE);
 	 }
 	 
 	 if(connect(DSock,info->ai_addr,info->ai_addrlen) < 0)
 	 {
 		 printf("Cannot connect to %s - %s\n",argv[1],ip);
-		 exit(1);
+		 exit(EXIT_FAILURE);
 	 }
 	 printf("Connected to %s - %s\n",argv[1],ip);
 	
+	char *html_query = build_get_query(host, page);
+	printf("Query content:\
+						\n\t<<BEGIN>>\
+						%s\
+						\n\t<<END!>>\n",html_query);
+	
+	//Send html request
+	//Loop toi khi send dc moi thoi
+	//retcode = 0;
+	int count = 0;
+	do
+	{
+		retcode = send(
+	}while(retcode < strlen(html_query));
+				
+	//Receive response from server
+	char *buffer[
 				
 				
 	//clear up struct addrinfo info!
-	freeaddrinfo(info);
-	return 0;
+	freeaddrinfo(info);	
+	free(html_query);
+	free(host);
+	free(page);	
+	
+	
+	//close socket
+	close(DSock);
+	exit(EXIT_SUCCESS);
 }
+//-------------End main() function-----------
 
+void help()
+{
+	printf("Please type with this format\
+				\n\t ./MSSV [path]\
+				\n\tEx: ./1312084 www.vnexpress/tin-tuc/\n");
+}
 
 //Build HTML query request!
 char *build_get_query(char *host, char *page)
@@ -96,6 +117,7 @@ char *build_get_query(char *host, char *page)
 	char *getpage = page;
 	char *tpl = "GET /%s HTTP/1.0\r\nHost: %s\r\nUser-Agent: %s\r\n\r\n";
 	
+	//Khuc nay chua hieu???
 	/*
 	if(getpage[0] == '/')
 	{
