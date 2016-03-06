@@ -33,7 +33,7 @@ void help();
 //Format: $ <MSSV> www.vnexpress.net (2 tham so)
 int main(int argc, char **argv)
 {
-	char *page, *host;
+	char *page, *host, *filename;
 	char ip[INET_ADDRSTRLEN];
 	int DSock;
 
@@ -62,7 +62,8 @@ int main(int argc, char **argv)
 	//Get host and page from agrv[1]
 	host = get_host(argv[1]);
 	page = get_page(argv[1],host);
-	printf("\nHost: %s - Page: %s\n",host,page);
+	filename = get_filename(argv[1]);
+	printf("\nHost: %s - Page: %s\nFile: %s\n",host,page,filename);
 	
 	//Lay thong tin tu host
 	//char temp[] = "www.lemoda.net";
@@ -186,7 +187,7 @@ char *get_host(char *path)
 	char *host;
 	
 	pt = strtok(dup,"/");
-	printf("Path format: %s\n",dup);
+	//printf("Path format: %s\n",dup);
 
 	if (pt && !strcmp(pt,"http:"))
 	{
@@ -233,14 +234,29 @@ char *get_page(char *path, char *host)
 
 char *get_filename(char *path)
 {
-	char *pt;
-	char *sav;
+	bool check = false;
+	if(path[strlen(path)-1] == "/");
+		check = true;
+		
+	char *pt, *sav;
 	char *filename;
-	
-	
-	
 	pt = strtok(path,"/");
-	while
+	sav = pt;
+	
+	while(pt = strtok(NULL,"/")) {	sav = pt; }
+	
+	if(check == true)
+	{
+		filename = (char*) malloc(strlen(sav)+2);
+		strcpy(filename,sav);
+		strcat(filename,"/");
+	}
+	else
+	{
+		filename = (char*) malloc(strlen(sav)+1);
+		strcpy(filename,sav);
+	}
+	return filename;
 	
 }
 
@@ -265,12 +281,25 @@ char *build_get_query(char *host, char *page)
 }
 
 //Ham get link tu file index.html ra
-char *getlink(FILE *ft);
+//Chep tu stackoverflow, chua thu :/
+char *getlink(FILE *ft)
+{
+	unsigned int curLine = 0;
+	while(getline(fileInput, line)) 
+	{
+		curLine++;
+		if (line.find(search, 0) != string::npos) {
+			cout << "found: " << search << "line: " << curLine << endl;
+    }
+}
+
 
 bool download_file(char *path);
 
 bool download(char *path);
 
+//Ham test, ko xai!
+/*
 bool write_file(char *buffer, int len)
 {
 	//File descriptor 1, 2
@@ -288,3 +317,4 @@ bool write_file(char *buffer, int len)
 	fclose(fd2);
 	return 1;
 }
+*/
