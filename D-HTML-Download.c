@@ -8,15 +8,24 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#define USERAGENT "HTMLGET 1.0"
+#define USERAGENT "HTMLGET 2.0"
 #define SERVICE "html"
 #define PORT 80
-#define BUFFSIZE 4096	//4K
+#define BUFFSIZE 8192	//8K
+
+typedef enum {false,true} bool;
 
 char *build_get_query(char *host, char *page);
 char *get_host(char *path);
 char *get_page(char *path, char *host);
+char *get_filename(char *path);
 void test_strtok();
+
+//Ham get link tu file index.html ra
+char *getlink(FILE *ft);
+bool download_file(char *path);
+bool download(char *path);
+bool write_file(char *buffer, int len);
 
 void help();
 
@@ -56,7 +65,8 @@ int main(int argc, char **argv)
 	printf("\nHost: %s - Page: %s\n",host,page);
 	
 	//Lay thong tin tu host
-	retcode = getaddrinfo(host,SERVICE,&hints,&info);
+	//char temp[] = "www.lemoda.net";
+	retcode = getaddrinfo(host,"http",&hints,&info);
 	
 	if(retcode != 0)
 	{
@@ -83,12 +93,9 @@ int main(int argc, char **argv)
 	 printf("Connected to %s - %s\n",argv[1],ip);
 	
 
-	
 	char *html_query = build_get_query(host, page);
 	printf("Query content:\
-						\n\t<<BEGIN>>\
-						%s\
-						\n\t<<END!>>\n",html_query);
+						\n<<BEGIN>>\n%s\n<<END!>>\n",html_query);
 	
 	//###Send html request###
 	//Loop toi khi goi dc het goi tin qua ben server
@@ -107,14 +114,17 @@ int main(int argc, char **argv)
 		retcode += bytes_sent;
 		
 	}while(retcode < strlen(html_query));
+	printf("Send HTML-REQUEST succeed\n");
 	//##################################
 				
 				
 	//###Receive response from server###
+	//########## A.K.A - Download ######
 	char *buffer[BUFFSIZE];
 	memset(buffer, 0, sizeof(buffer));
 	int bytes_recv;
 	
+	printf("HTML Content:\n");
 	do
 	{
 		bytes_recv = recv(DSock,buffer,BUFFSIZE,0);
@@ -123,7 +133,11 @@ int main(int argc, char **argv)
 			printf("Failed to receive response!");
 			exit(EXIT_FAILURE);
 		}
-		
+		else
+		{
+			buffer[bytes_recv + 1] = '\0';
+		}
+		printf("%s\n",buffer);
 		
 	}
 	while(bytes_recv > 0);
@@ -217,6 +231,19 @@ char *get_page(char *path, char *host)
 	return page;
 }
 
+char *get_filename(char *path)
+{
+	char *pt;
+	char *sav;
+	char *filename;
+	
+	
+	
+	pt = strtok(path,"/");
+	while
+	
+}
+
 //Build HTML query request!
 char *build_get_query(char *host, char *page)
 {
@@ -235,4 +262,29 @@ char *build_get_query(char *host, char *page)
 	query = (char *)malloc(strlen(host)+strlen(getpage)+strlen(USERAGENT)+strlen(tpl)-5);
 	sprintf(query, tpl, getpage, host, USERAGENT);
 	return query;
+}
+
+//Ham get link tu file index.html ra
+char *getlink(FILE *ft);
+
+bool download_file(char *path);
+
+bool download(char *path);
+
+bool write_file(char *buffer, int len)
+{
+	//File descriptor 1, 2
+	FILE *fd1, *fd2;
+	
+	fp = fopen("name.doc","w");
+	if (fp == NULL)
+	{
+		printf("Failed to write file!\n");
+		exit(1);
+	}
+	
+	fprintf(fd1,"%s",buffer);
+	fclose(fd1);
+	fclose(fd2);
+	return 1;
 }
