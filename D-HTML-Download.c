@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	char *page, *host;
 	char ip[INET_ADDRSTRLEN];
 	int DSock;
-	//test_strtok();
+
 	if(argc == 2)
 	{
 		//page = argv[1];
@@ -53,10 +53,10 @@ int main(int argc, char **argv)
 	//Get host and page from agrv[1]
 	host = get_host(argv[1]);
 	page = get_page(argv[1],host);
-	printf("Host: %s - Page: %s\n",host,page);
+	printf("\nHost: %s - Page: %s\n",host,page);
 	
 	//Lay thong tin tu host
-	retcode = getaddrinfo(argv[1],SERVICE,&hints,&info);
+	retcode = getaddrinfo(host,SERVICE,&hints,&info);
 	
 	if(retcode != 0)
 	{
@@ -136,7 +136,6 @@ int main(int argc, char **argv)
 	free(host);
 	free(page);	
 	
-	
 	//close socket
 	close(DSock);
 	exit(EXIT_SUCCESS);
@@ -166,58 +165,55 @@ void test_strtok()
 char *get_host(char *path)
 {
 	//Input se co dang: http://example.com/index.html
-	//Output: example.com
+	//Output: example.com hoac www.example.com
 	char *dup = (char*) malloc(strlen(path)+1);
 	strcpy(dup,path);
 	char *pt;
 	char *host;
 	
 	pt = strtok(dup,"/");
-	//printf("Path format: %s\n",dup);
-	printf("1");
-	
-	
-	//char tmp[] = "http:";
+	printf("Path format: %s\n",dup);
+
 	if (pt && !strcmp(pt,"http:"))
 	{
-		printf("1");
+		//printf("1");
 		pt = strtok(NULL,"/");
-		pt = strtok(NULL,"/");
-	}
-	else
-	{
-		printf("Failed to get host name\n");
-		exit(1);
 	}
 
-	//www.example.com or example.com
-	printf("2");
 	host = (char*) malloc(strlen(pt)+1);
 	strcpy(host,pt);
-	printf("3");
+	free(dup);
+	printf("Return host name: %s\n",host);
+
 	return host;
 }
 
+//Get /tin-tuc trong: www.vnexpress.net/tin-tuc
 char *get_page(char *path, char *host)
 {
+	printf("\n");
 	char *pt;
 	char *page;
+	char *dup = (char*)malloc(strlen(path));
+	strcpy(dup,path);
 	
-	pt = strtok(path,"/");
-	printf("4");
-	printf("Path format: %s\n",pt);
-	
+	printf("Original path: %s\n",path);
+	pt = strtok(dup,"/");
+
 	if ( strcmp(pt,"http:") == 0 )
 	{
-		printf("5");
-		pt = strtok(NULL,"/");
-		pt = pt + strlen(host) + 1;
-		//remove host
-		// + 1 for removing character "/"
+		path += 7 + strlen(host);
 	}
-	printf("6");
-	page = (char*) malloc(strlen(pt)+1);
-	strcpy(page,pt);
+	else
+	{
+		path += strlen(host);
+	}
+	
+	page = (char*) malloc(strlen(path)+1);
+	strcpy(page,path);
+	printf("Return Page: %s",page);
+	free(dup);
+	
 	return page;
 }
 
@@ -228,15 +224,13 @@ char *build_get_query(char *host, char *page)
 	char *getpage = page;
 	char *tpl = "GET /%s HTTP/1.0\r\nHost: %s\r\nUser-Agent: %s\r\n\r\n";
 	
-	//Khuc nay chua hieu???
-	/*
+	//Bo dau '/'
 	if(getpage[0] == '/')
 	{
 		getpage = getpage + 1;
 		fprintf(stderr,"Removing leading \"/\", converting %s to %s\n", page, getpage);
 	}
 	// -5 is to consider the %s %s %s in tpl and the ending \0
-	*/
 
 	query = (char *)malloc(strlen(host)+strlen(getpage)+strlen(USERAGENT)+strlen(tpl)-5);
 	sprintf(query, tpl, getpage, host, USERAGENT);
