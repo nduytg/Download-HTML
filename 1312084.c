@@ -1,4 +1,7 @@
-//D-HTML-Download
+//		D-HTML-Download		#
+//Ten: 		Nguyen Duc Duy		#
+//MSSV: 	1312084			#
+//###############################
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -13,7 +16,7 @@
 #include <unistd.h>
 
 //DEFINE
-#define USERAGENT "HTMLGET 1.1"
+#define USERAGENT "HTMLGET 1.0"
 #define SERVICE "html"
 #define PORT 80
 #define BUFFSIZE 8192	//8K buffer
@@ -23,36 +26,36 @@
 struct stat st = {0};
 typedef enum {false,true} bool;
 
+//Ham tao query de goi toi server
 char *build_get_query(char *host, char *page);
+
+//Ham lay ten host tu link goc
 char *get_host(char *path);
+
+//Ham lay page can down tu link goc
 char *get_page(char *path, char *host);
+
+//Ham lay file name can down tu link goc
 char *get_filename(char *path);
+//-----------------------------
 
 //Ham get link tu file index.html ra
 char *getlink(FILE *fp);
+
+//Ham download file le
 char* download_file(char *path, char *folder_name, int mode);
+
+//Ham download chinh
 bool main_download(char *path);
 
+//Ham chua thong tin huong dan nhap input
 void help();
 
-//Bien toan cuc
-//bool is_file = false;		//False: Folder - True: File
 
 //Tham số dòng lệnh
 //Format: $ <MSSV> www.vnexpress.net (2 tham so)
 int main(int argc, char **argv)
 {
-	//Tao folder
-	/*
-	if (stat("./test", &st) == -1) 
-	{
-		printf("Make dir!\n");
-		if(!mkdir("./test", 0777))
-			printf("Made dir!\n");
-	}
-	exit(EXIT_SUCCESS);
-	*/
-	
 	//Check arguments
 	if(argc == 2)
 	{
@@ -70,10 +73,10 @@ int main(int argc, char **argv)
 	
 	exit(EXIT_SUCCESS);
 }
-//-------------End main() function-----------
+//-------------End main() function-----------------------
 
 
-
+//-----------Cac ham su dung trong chuong trinh----------
 void help()
 {
 	printf("Please type with this format\
@@ -92,12 +95,10 @@ char *get_host(char *path)
 	char *host;
 	
 	pt = strtok(dup,"/");
-
 	if (pt && !strcmp(pt,"http:"))
 	{
 		pt = strtok(NULL,"/");
 	}
-
 	host = (char*) malloc(strlen(pt)+1);
 	strcpy(host,pt);
 	free(dup);
@@ -117,8 +118,8 @@ char *get_page(char *path, char *host)
 	strcpy(dup,path);
 	strcpy(dup2,path);
 	del_dup2 = dup2;
-	
 	pt = strtok(dup,"/");
+	
 	if ( strcmp(pt,"http:") == 0 )
 	{
 		dup2 += 7 + strlen(host);		//+7 = skip "http://"
@@ -169,7 +170,6 @@ char *get_filename(char *path)
 	}
 	free(dup);
 	return filename;
-	
 }
 
 //Build HTML query request!
@@ -186,7 +186,7 @@ char *build_get_query(char *host, char *page)
 		fprintf(stderr,"Removing leading \"/\", converting %s to %s\n", page, getpage);
 	}
 	// -5 is to consider the %s %s %s in tpl and the ending \0
-
+	
 	query = (char *)malloc(strlen(host)+strlen(getpage)+strlen(USERAGENT)+strlen(tpl)-5);
 	sprintf(query, tpl, getpage, host, USERAGENT);
 	return query;
@@ -222,10 +222,13 @@ bool main_download(char *path)
 			if(!mkdir(folder_name, 0777))
 				printf("Made dir!\n");
 			else
+			{
 				printf("Cannot create new directory! :(\n");
+				printf("Plz try again :(\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 		free(tmp);
-		
 	}	
 	//---------Het phan code tao folder---------
 
@@ -259,19 +262,28 @@ bool main_download(char *path)
 		
 		while( !feof(fp))
 		{
-			short_link = getlink(fp);
-			printf("Short link: %s\n",short_link);
+			//printf("Ok 2\n");
+			if( (short_link = getlink(fp)) == NULL )
+			{
+				printf("Ok 2.5\n");
+				break;
+			}
+			//printf("Ok 3\n");
+			//short_link = getlink(fp);
+			//printf("Short link: %s\n",short_link);
 			//Download file con!
-			char *full_link = (char*)malloc(strlen(host) + strlen(page) + strlen(short_link) + +1);
+			char *full_link = (char*)malloc(strlen(host) + strlen(page) + strlen(short_link) + 1);
 			strcpy(full_link,host);
 			strcat(full_link,page);
 			strcat(full_link,short_link);
-			printf("Full link: %s\n",full_link);
+			//printf("Full link: %s\n",full_link);
 			
 			if(full_link!=NULL)
 				download_file(full_link, folder_name, 2);
 			else
 				printf("Link Error!\n");
+				
+			//printf("Ok\n");
 			free(short_link);
 			free(full_link);	
 		};
@@ -475,7 +487,7 @@ char* download_file(char *path, char *folder_name, int mode)
 	while((bytes_recv = recv(DSock,buffer,BUFFSIZE,0)) > 0)
 	{
 		total+=bytes_recv;
-		printf("First Packet: \n%s\n",buffer);	
+		//printf("First Packet: \n%s\n",buffer);	
 		if(htmlstart == 0)
 		{
 			//Skip header!!!
@@ -486,7 +498,7 @@ char* download_file(char *path, char *folder_name, int mode)
 				htmlstart = 1;
 				htmlcontent += 4;		//Skip \r\n\r\n
 				int real_bytes = bytes_recv - header_size;
-				printf("Header!!\nHTML content: %s\n",htmlcontent);
+				//printf("Header!!\nHTML content: %s\n",htmlcontent);
 				total_write += fwrite (htmlcontent , sizeof(char), real_bytes, fp);
 				//total_write += real_bytes;
 				//printf("%s\n",htmlcontent);
@@ -553,11 +565,13 @@ char *getlink(FILE *fp)
 	}
 
 	char *link = NULL;
-	char *pt1, *pt2;
+	//char *pt1, *pt2;
+	char *pt1 = NULL, *pt2 = NULL;
 	char buffer[BUFFSIZE];
 	
 	while(fgets(buffer,BUFFSIZE,fp))
 	{
+
 		if((pt1 = strstr(buffer,"href=\""))!=NULL)
 		{
 			pt1+=6;		//Skip chu href
@@ -566,9 +580,15 @@ char *getlink(FILE *fp)
 		}
 	}
 	
-	link = (char*) malloc(strlen(pt2)+1);
-	strcpy(link,pt2);
-	return link;
+	if(pt2!=NULL)
+	{
+		//printf("strlen(pt2): %d\n",strlen(pt2));
+		link = (char*) malloc(strlen(pt2)+1);
+		strcpy(link,pt2);
+		return link;
+	}
+	return NULL;
+	
 }
 
 
