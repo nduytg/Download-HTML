@@ -1,0 +1,6 @@
+README
+
+Chương trình được code bằng C/C++, dùng để download 1 file/folder bằng giao thức http (chưa hỗ trợ https).
+Chạy và biên dịch trên Linux/Windows (Windows chưa test).
+Sử dụng: <tên chương trình> <folder/file> cần down
+Ex: ./1312084 http://www.aet.calu.edu/ftp/csc/120/
