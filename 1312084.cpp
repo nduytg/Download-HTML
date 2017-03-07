@@ -231,8 +231,6 @@ bool main_download(char *path)
 				exit(EXIT_FAILURE);
 			}
 		}
-		
-		
 		free(tmp);
 	}	
 	//---------Het phan code tao folder---------
@@ -273,9 +271,7 @@ bool main_download(char *path)
 				printf("Ok 2.5\n");
 				break;
 			}
-			//printf("Ok 3\n");
-			//short_link = getlink(fp);
-			//printf("Short link: %s\n",short_link);
+
 			//Download file con!
 			char *full_link = (char*)malloc(strlen(host) + strlen(page) + strlen(short_link) + 1);
 			strcpy(full_link,host);
@@ -301,6 +297,7 @@ bool main_download(char *path)
 	}
 	
 	printf("\nDownload Completed!^^\n");
+	
 	//Giai phong bo nho
 	free(main_file);
 	free(host);
@@ -310,7 +307,7 @@ bool main_download(char *path)
 	return true;
 }
 
-//Two mode:
+//Ham nay co 2 mode:
 //1: download file index cua folder goc hoac down 1 file le
 //2: download cac files linh tinh con lai
 //Tra ve file name!!
@@ -453,23 +450,10 @@ char* download_file(char *path, char *folder_name, int mode)
 	strcat(temp_name,filename);
 	printf("File name sau khi cat: %s\n",temp_name);
 	
-	//printf("File name: %s\n",temp_name);
-	/*
-	strcat(temp_name,"_");
-	printf("File name: %s\n",filename);
-	if(filename[strlen(filename)-1] == '/')
-	{
-		printf("This is a folder!\n");
-		filename[strlen(filename)-1] = '\0';
-	}
-	else
-		printf("This is a file!\n");
-	*/
 	//Xu ly tempname don gian
 	//bool save = false;
 	if(temp_name[strlen(temp_name)-1] == '/')
 		temp_name[strlen(temp_name)-1] = '\0';
-	
 	
 	fp = fopen(temp_name,"w");
 	
@@ -477,7 +461,6 @@ char* download_file(char *path, char *folder_name, int mode)
 	{
 		printf("Failed to write file: %s\n",temp_name);
 		return NULL;
-		//exit(EXIT_FAILURE);
 	}
 
 	char buffer[BUFFSIZE];
@@ -570,13 +553,11 @@ char *getlink(FILE *fp)
 	}
 
 	char *link = NULL;
-	//char *pt1, *pt2;
 	char *pt1 = NULL, *pt2 = NULL;
 	char buffer[BUFFSIZE];
 	
 	while(fgets(buffer,BUFFSIZE,fp))
 	{
-
 		if((pt1 = strstr(buffer,"href=\""))!=NULL)
 		{
 			pt1+=6;		//Skip chu href
@@ -593,7 +574,6 @@ char *getlink(FILE *fp)
 		return link;
 	}
 	return NULL;
-	
 }
 
 
